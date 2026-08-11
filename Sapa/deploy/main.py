@@ -31,7 +31,7 @@ import io
 import json
 import base64
 import os
-
+from contextlib import asynccontextmanager
 import torch
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
@@ -56,7 +56,7 @@ text_model = None
 vocab = None
 
 
-@app.on_event("startup")
+@asynccontextmanager
 def load_models():
     global gan_generator, text_model, vocab
 
