@@ -42,7 +42,7 @@ from PIL import Image
 from gan_model import Generator
 from transformer_model import MiniGPT
 
-app = FastAPI(title="From-Scratch AI Platform", version="1.0")
+app = FastAPI(title="From-Scratch AI Platform", version="1.0", lifespan=lifespan)
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 MODELS_DIR = os.path.join(os.path.dirname(__file__), "models")
@@ -57,33 +57,52 @@ vocab = None
 
 
 @asynccontextmanager
-def load_models():
+async def lifespan(app):
     global gan_generator, text_model, vocab
 
     gan_path = os.path.join(MODELS_DIR, "generator_final.pth")
+
     if os.path.exists(gan_path):
         gan_generator = Generator(latent_dim=100, img_channels=1)
-        gan_generator.load_state_dict(torch.load(gan_path, map_location=DEVICE))
+        gan_generator.load_state_dict(
+            torch.load(gan_path, map_location=DEVICE)
+        )
         gan_generator.to(DEVICE).eval()
         print("GAN generator loaded.")
     else:
-        print(f"WARNING: {gan_path} not found - /generate-image will be unavailable.")
+        print(
+            f"WARNING: {gan_path} not found - "
+            "/generate-image will be unavailable."
+        )
 
     text_model_path = os.path.join(MODELS_DIR, "model_final.pth")
     vocab_path = os.path.join(MODELS_DIR, "vocab.json")
+
     if os.path.exists(text_model_path) and os.path.exists(vocab_path):
         with open(vocab_path) as f:
             vocab = json.load(f)
+
         text_model = MiniGPT(
-            vocab_size=vocab["vocab_size"], embed_dim=256, n_heads=8,
-            n_layers=6, block_size=256,
+            vocab_size=vocab["vocab_size"],
+            embed_dim=256,
+            n_heads=8,
+            n_layers=6,
+            block_size=256,
         )
-        text_model.load_state_dict(torch.load(text_model_path, map_location=DEVICE))
+
+        text_model.load_state_dict(
+            torch.load(text_model_path, map_location=DEVICE)
+        )
         text_model.to(DEVICE).eval()
+
         print("Text/code Transformer loaded.")
     else:
-        print(f"WARNING: {text_model_path} not found - /generate-text will be unavailable.")
+        print(
+            f"WARNING: {text_model_path} not found - "
+            "/generate-text will be unavailable."
+        )
 
+    yield
 
 # ---------------------------------------------------------------------
 # Image generation endpoint
