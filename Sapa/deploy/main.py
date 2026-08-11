@@ -42,7 +42,7 @@ from PIL import Image
 from gan_model import Generator
 from transformer_model import MiniGPT
 
-app = FastAPI(title="From-Scratch AI Platform", version="1.0", lifespan=lifespan)
+
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 MODELS_DIR = os.path.join(os.path.dirname(__file__), "models")
@@ -103,6 +103,9 @@ async def lifespan(app):
         )
 
     yield
+
+
+app = FastAPI(title="From-Scratch AI Platform", version="1.0", lifespan=lifespan)
 
 # ---------------------------------------------------------------------
 # Image generation endpoint
