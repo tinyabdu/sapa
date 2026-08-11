@@ -1,0 +1,2 @@
+# Trained checkpoint files go here (generator_final.pth, model_final.pth, vocab.json)
+# Download these from Colab after training, place them in this folder before deploying.
